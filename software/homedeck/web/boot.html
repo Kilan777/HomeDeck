@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Jarvis</title>
+<style>
+html,body{height:100%;margin:0;background:#000;color:#f5f5f7;font-family:Inter,"Noto Sans",system-ui,sans-serif;overflow:hidden}
+.w{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+h1{font-size:150px;font-weight:700;letter-spacing:-.04em;margin:0;line-height:1}
+p{margin:26px 0 0;font-size:30px;color:#969aa4;font-weight:400}
+.bar{width:480px;height:6px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:34px}
+.bar i{display:block;height:100%;width:38%;border-radius:3px;background:#f5f5f7;animation:slide 1.4s ease-in-out infinite}
+@keyframes slide{0%{transform:translateX(-110%)}100%{transform:translateX(290%)}}
+</style></head><body><div class="w"><h1>Jarvis</h1><p id="s">Starting</p><div class="bar"><i></i></div></div>
+<script>
+// Shown by the kiosk the moment the session starts; hands over to the HomeDeck UI as soon as the server answers.
+const s=document.getElementById("s"); let n=0;
+// a file:// page cannot fetch() http://localhost (CORS), but an <img> load succeeds or fails plainly, so probe with one
+(function poll(){ const im=new Image(); im.onload=()=>{ s.textContent="Ready"; location.replace("http://localhost:8080/?kiosk=1"); }; im.onerror=()=>{ n++; if(n>12) s.textContent="Starting up"; setTimeout(poll,500); }; im.src="http://localhost:8080/web/icon-180.png?t="+Date.now(); })();
+</script></body></html>

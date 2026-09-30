@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0c0f">
+<title>{{DEVICE}}</title>
+<link rel="icon" href="/web/icon.svg" type="image/svg+xml">
+<style>
+  :root { --bg: #0b0c0f; --card: #1c1c1e; --fg: #f2f2f7; --fg2: #aeb3bd; --muted: #7d8593; --line: rgba(255,255,255,.08); --accent: #0a84ff; --critical: #ff453a; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.45 -apple-system, "SF Pro Text", system-ui, "Helvetica Neue", sans-serif; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .card { width: min(380px, 100%); background: var(--card); border-radius: 18px; padding: 28px 24px 24px; box-shadow: 0 0 0 1px var(--line); text-align: center; }
+  .mark { width: 64px; height: 64px; margin: 0 auto 14px; }
+  h1 { font-size: 24px; font-weight: 650; margin: 0 0 4px; letter-spacing: -.02em; }
+  p { margin: 0 0 22px; color: var(--fg2); font-size: 15px; }
+  a.btn { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 50px; border-radius: 14px; background: var(--accent); color: #fff; text-decoration: none; font-weight: 600; font-size: 16px; }
+  a.btn:active { transform: scale(.98); }
+  .err { margin: 0 0 16px; padding: 10px 12px; border-radius: 10px; background: rgba(255,69,58,.12); color: var(--critical); font-size: 14px; }
+  .err:empty { display: none; }
+  .foot { margin-top: 18px; font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <svg class="mark" viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#0f1115"/><circle cx="256" cy="256" r="150" fill="none" stroke="#6f9bff" stroke-width="28"/><circle cx="256" cy="256" r="62" fill="#6f9bff"/><rect x="236" y="60" width="40" height="70" rx="20" fill="#6f9bff"/></svg>
+    <h1>{{DEVICE}}</h1>
+    <p>Sign in to control this device.</p>
+    <div class="err">{{ERROR}}</div>
+    <a class="btn" href="/auth/start">
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M21.6 12.2c0-.7-.1-1.3-.2-1.9H12v3.7h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z"/><path fill="#fff" opacity=".8" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22z"/><path fill="#fff" opacity=".6" d="M6.4 13.9a6 6 0 0 1 0-3.8V7.5H3.1a10 10 0 0 0 0 9z"/><path fill="#fff" opacity=".9" d="M12 6c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 0 0 3.1 7.5l3.3 2.6C7.2 7.8 9.4 6 12 6z"/></svg>
+      Continue with Google
+    </a>
+    <div class="foot">Only the owner's account is allowed. You stay signed in on this device for 30 days.</div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,52 @@
+/* HomeDeck home style "Ambient": black, a huge clock, one quiet status line. Tiles only on tap or when something needs attention.
+   Everything is scoped to html[data-home="ambient"] so the base stylesheet stays untouched. */
+html[data-home="ambient"] body { background: #000; }
+html[data-home="ambient"] #idle { background: #000; justify-content: center; gap: 0; padding: 0 16px 96px; min-height: 100vh; min-height: 100dvh; }
+html[data-home="ambient"] #idle.music { justify-content: flex-start; padding-top: 18px; }
+
+/* clock: iOS lock-screen weight, tight, slightly dimmed white; dimmer again at night */
+html[data-home="ambient"] .clockwrap { margin-bottom: 26px; transition: opacity .8s ease; }
+html[data-home="ambient"] #clock { font-size: 188px; font-weight: 640; letter-spacing: -.075em; line-height: .88; color: #d8d8dc;
+  font-variation-settings: "opsz" 32; font-variant-numeric: tabular-nums; }
+html[data-home="ambient"] #clock .ampm { display: none; }
+html[data-home="ambient"] #date { font-size: 17px; font-weight: 400; color: rgba(235,235,245,.42); margin-top: 6px; letter-spacing: -.005em; }
+html[data-home="ambient"].amb-night #clock { color: #8a8790; }
+html[data-home="ambient"].amb-night #date, html[data-home="ambient"].amb-night .amb-line { color: rgba(235,235,245,.28); }
+html[data-home="ambient"] #idle.music #clock { font-size: 34px; letter-spacing: -.02em; color: var(--fg); }
+html[data-home="ambient"] #idle.music .clockwrap { margin-bottom: 0; }
+
+/* the status block replaces the widget grid */
+html[data-home="ambient"] #idlewidgets { display: block; width: 100%; max-width: 460px; }
+html[data-home="ambient"] .amb { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+html[data-home="ambient"] .amb-line { font-size: 15px; line-height: 1.4; color: rgba(235,235,245,.62); letter-spacing: -.005em; max-width: 100%;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color .8s ease; }
+html[data-home="ambient"] .amb-line:empty { display: none; }
+html[data-home="ambient"] .amb-pill { display: inline-flex; align-items: center; gap: 7px; margin-top: 8px; padding: 6px 12px 6px 10px; border-radius: 999px;
+  font-size: 13px; font-weight: 600; letter-spacing: .01em; color: var(--fg); background: rgba(255,255,255,.07); box-shadow: inset 0 0 0 1px var(--hair); }
+html[data-home="ambient"] .amb-pill:empty { display: none; }
+html[data-home="ambient"] .amb-pill .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+html[data-home="ambient"] .amb-pill .dot.good { background: var(--good); }
+html[data-home="ambient"] .amb-pill .dot.warning { background: var(--warning); }
+html[data-home="ambient"] .amb-pill .dot.serious { background: var(--serious); }
+html[data-home="ambient"] .amb-pill .dot.critical { background: var(--critical); }
+html[data-home="ambient"] .amb-pill.critical { box-shadow: inset 0 0 0 1px rgba(255,69,58,.55); }
+html[data-home="ambient"] .amb-pill.serious { box-shadow: inset 0 0 0 1px rgba(255,159,10,.5); }
+
+/* revealed tiles: a sheet that slides up from the bottom, above the corner controls */
+html[data-home="ambient"] .amb-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; padding: 14px 16px calc(84px + env(safe-area-inset-bottom, 0px));
+  background: rgba(12,12,14,.96); box-shadow: 0 -1px 0 var(--hair); border-radius: 22px 22px 0 0;
+  transform: translateY(104%); opacity: 0; pointer-events: none; transition: transform .25s cubic-bezier(.2,.8,.2,1), opacity .2s ease; }
+html[data-home="ambient"] .amb-sheet.open { transform: none; opacity: 1; pointer-events: auto; }
+html[data-home="ambient"] .amb-sheet-head { display: flex; align-items: center; justify-content: space-between; margin: 0 2px 12px; }
+html[data-home="ambient"] .amb-sheet-head span { font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+html[data-home="ambient"] .amb-apps { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 999px; border: 0;
+  background: rgba(255,255,255,.08); color: var(--fg); font: inherit; font-size: 13px; font-weight: 500; }
+html[data-home="ambient"] .amb-apps svg { width: 16px; height: 16px; }
+html[data-home="ambient"] .amb-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+html[data-home="ambient"] .amb-grid .iw { min-height: 96px; background: rgba(255,255,255,.06); }
+html[data-home="ambient"] .amb-grid .iw:empty { display: none; }
+html[data-home="ambient"] .amb-grid .iw .big, html[data-home="ambient"] .amb-grid .iw-big, html[data-home="ambient"] .amb-grid .iw-v { font-size: 30px; }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-home="ambient"] .amb-sheet, html[data-home="ambient"] .clockwrap, html[data-home="ambient"] .amb-line { transition: none; }
+}

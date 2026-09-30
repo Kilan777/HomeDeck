@@ -1,0 +1,74 @@
+// Jarvis HomeDeck boot splash (Plymouth script). The 7-inch panel scans out portrait (720x1280) while the device is
+// mounted landscape, so the artwork is pre-rotated and the progress bar runs vertically in framebuffer space:
+// landscape (x, y) -> framebuffer (y, 1280 - x). The bar sits below "Booting" and fills as boot progress advances.
+Window.SetBackgroundTopColor(0, 0, 0);
+Window.SetBackgroundBottomColor(0, 0, 0);
+W = Window.GetWidth();
+H = Window.GetHeight();
+
+logo = Image("splash.png");
+sx = W / logo.GetWidth();
+sy = H / logo.GetHeight();
+scale = sx; if (sy < sx) scale = sy;
+logo = logo.Scale(logo.GetWidth() * scale, logo.GetHeight() * scale);
+logo_sprite = Sprite(logo);
+logo_sprite.SetPosition((W - logo.GetWidth()) / 2, (H - logo.GetHeight()) / 2, -10);
+
+// bar geometry in landscape design units (1280x720): 480 wide, 6 tall, centred, at y = 540
+bar_len = 480 * scale;
+bar_thick = 6 * scale;
+fb_x = 540 * scale + (W - 720 * scale) / 2;                 // landscape y -> framebuffer x
+fb_top = (1280 - 880) * scale + (H - 1280 * scale) / 2;     // landscape x = 880 (right end) -> framebuffer y (top of the run)
+fb_bottom = fb_top + bar_len;                               // landscape x = 400 (left end) -> bottom of the run
+
+track = Image("track.png").Scale(bar_thick, bar_len);
+track_sprite = Sprite(track);
+track_sprite.SetPosition(fb_x, fb_top, 1);
+
+fill_img = Image("fill.png");
+fill_sprite = Sprite();
+fill_sprite.SetPosition(fb_x, fb_bottom, 2);
+fill_sprite.SetOpacity(1);
+
+glow_img = Image("glow.png");
+glow_sprite = Sprite();
+glow_sprite.SetOpacity(0);
+
+current = 0.0;
+shown = 0.0;
+
+fun set_fill(p) {
+  if (p < 0.02) p = 0.02;
+  if (p > 1) p = 1;
+  h = bar_len * p;
+  fill_sprite.SetImage(fill_img.Scale(bar_thick, h));
+  fill_sprite.SetPosition(fb_x, fb_bottom - h, 2);           // grows upward = left to right in landscape
+  gh = 40 * scale;
+  glow_sprite.SetImage(glow_img.Scale(bar_thick, gh));
+  glow_sprite.SetPosition(fb_x, fb_bottom - h - gh, 3);
+  glow_sprite.SetOpacity(0.9);
+}
+
+fun progress_callback(duration, progress) {
+  current = progress;
+}
+
+fun refresh_callback() {
+  // ease the shown value toward the reported progress so the bar moves smoothly, and keep a slow crawl so it never looks stuck
+  if (shown < current) shown = shown + (current - shown) * 0.08;
+  else shown = shown + 0.0006;
+  if (shown > 0.985) shown = 0.985;
+  set_fill(shown);
+}
+
+fun quit_callback() {
+  set_fill(1);
+}
+
+Plymouth.SetBootProgressFunction(progress_callback);
+Plymouth.SetRefreshFunction(refresh_callback);
+Plymouth.SetQuitFunction(quit_callback);
+Plymouth.SetDisplayPasswordFunction(fun (prompt, bullets) {});
+Plymouth.SetDisplayQuestionFunction(fun (prompt, entry) {});
+Plymouth.SetMessageFunction(fun (text) {});
+set_fill(0.02);

@@ -1,0 +1,2 @@
+{ "name": "HomeDeck", "short_name": "HomeDeck", "start_url": "/", "display": "standalone", "background_color": "#0f1115", "theme_color": "#0f1115",
+  "icons": [ { "src": "/web/icon-180.png", "sizes": "180x180", "type": "image/png" }, { "src": "/web/icon-512.png", "sizes": "512x512", "type": "image/png" }, { "src": "/web/icon.svg", "sizes": "any", "type": "image/svg+xml" } ] }

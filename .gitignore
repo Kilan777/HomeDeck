@@ -1,0 +1,15 @@
+# python
+__pycache__/
+*.pyc
+software/homedeck/venv/
+# kicad clutter
+kicad/.history/
+kicad/*-backups/
+kicad/fp-info-cache
+kicad/*.kicad_prl
+kicad/_autosave-*
+*.bak
+*.tmp
+# local
+.DS_Store
+*.log

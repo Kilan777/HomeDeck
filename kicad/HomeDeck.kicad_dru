@@ -1,0 +1,13 @@
+(version 1)
+(rule "CM4 fanout clearance"
+  (condition "A.insideArea('CM4_FANOUT') && B.insideArea('CM4_FANOUT')")
+  (constraint clearance (min 0.1mm)))
+(rule "CM4 fanout track width"
+  (condition "A.insideArea('CM4_FANOUT')")
+  (constraint track_width (min 0.1mm)))
+(rule "CM4 fanout vias"
+  (condition "A.insideArea('CM4_FANOUT')")
+  (constraint via_diameter (min 0.45mm))
+  (constraint hole_size (min 0.2mm)))
+(rule "pads may use a single thermal spoke"
+  (constraint min_resolved_spokes 1))

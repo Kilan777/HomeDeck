@@ -1,0 +1,5 @@
+Designator,Value,Footprint,Note
+M1,Raspberry Pi CM4,HomeDeck:RPi_CM4,"not in JLC library: Compute Module 4 (2x DF40C-100DS-0.4V(51), JLC C597931)"
+R12,0R,Resistor_SMD:R_0603_1608Metric,DNP (do not populate)
+C36,22pF,Capacitor_SMD:C_0603_1608Metric,DNP (do not populate)
+C37,22pF,Capacitor_SMD:C_0603_1608Metric,DNP (do not populate)
