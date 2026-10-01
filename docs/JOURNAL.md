@@ -4,6 +4,20 @@ Dated notes on what was tried, what broke, and what fixed it. Newest first. The 
 "what"; this file keeps the "why" and the dead ends, so nobody repeats them. Software layout is in
 SOFTWARE.md, hardware findings in PCB_ISSUES.md.
 
+## 2026-09-30: white "reconnecting" screen in the morning: file-handle leak from camera retries
+
+After the reboot on the 29th at 21:58 the camera was not connected (out of its housing). The camera module
+retried `_start_camera()` every 30 s, and every failed `Picamera2()` leaks one pipe end inside picamera2/libcamera
+(measured: 5 failed constructions = +5 handles; its `close()` fails with "no attribute _preview"). At 1024 open
+files (06:20) the server could not accept connections, open /dev/null, or talk to ALSA: the kiosk showed
+"reconnecting", the 07:27 browser restart came up white, voice capture died. Found with `ls /proc/PID/fd`
+(1003 pipes, all with the other end closed) and `strace -f -e pipe2,close`: one thread made an O_NONBLOCK pipe
+every 30 s with no execve. Fix: check `Picamera2.global_camera_info()` before constructing (one-time cost of 3
+handles, nothing per call), back off failed starts 30 s doubling to 10 min, log a failure once per distinct error;
+a manual mode change retries at once. Safety net: server.py `_fd_guard` logs at 60 % of the handle limit and exits
+at 85 % with the top handle types, so systemd restarts a clean process instead of the screen hanging. Handle count
+now flat (21 over 150 s) with the camera still unplugged.
+
 ## 2026-09-29: camera "not focusing", Spotify "disconnected", kiosk stuck after reboot
 
 **Camera autofocus was mechanically blocked by the enclosure.** Symptoms: every frame soft, `af_cycle` fails or

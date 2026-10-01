@@ -380,9 +380,38 @@ class Handler(BaseHTTPRequestHandler):
         self.send(200, self.MIME.get(os.path.splitext(p)[1], "application/octet-stream"), data)
 
 
+def _fd_guard():
+    """Safety net for file-handle leaks: one leak (a camera retry) used every handle overnight, after which the server
+    could not answer and the screen sat on "reconnecting". Above 85 % of the limit, log what is open and exit so
+    systemd (Restart=always) brings up a clean process in a few seconds."""
+    import resource, collections
+    soft = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
+    warned = False
+    while True:
+        time.sleep(60)
+        try:
+            fds = os.listdir("/proc/self/fd")
+            n = len(fds)
+            if n > 0.6 * soft and not warned:
+                log(f"{n} of {soft} file handles in use; watching for a leak")
+                warned = True
+            if n > 0.85 * soft:
+                kinds = collections.Counter()
+                for fd in fds:
+                    try:
+                        kinds[re.sub(r"\d+", "N", os.readlink(f"/proc/self/fd/{fd}"))] += 1
+                    except OSError:
+                        pass
+                log(f"{n} of {soft} file handles in use, restarting the service. Top: {kinds.most_common(4)}")
+                os._exit(1)
+        except Exception as e:
+            log(f"fd guard: {e}")
+
+
 def main():
     os.makedirs(DATA_DIR, exist_ok=True)
     load_modules()
+    threading.Thread(target=_fd_guard, name="fd-guard", daemon=True).start()
     log(f"HomeDeck serving on port {PORT}")
     srv = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     srv.daemon_threads = True
