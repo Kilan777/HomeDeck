@@ -7,6 +7,15 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0f1115">
 <title>HomeDeck</title>
+<!-- critical fallback: dark even if style.css never arrives (server struggling), and reload until it does -->
+<style>html,body{background:#0f1115;color:#f2f2f7;margin:0}</style>
+<script>
+window.addEventListener("load", function () {
+  var ok = false;
+  for (var i = 0; i < document.styleSheets.length; i++) { try { if ((document.styleSheets[i].href || "").indexOf("/web/style.css") >= 0 && document.styleSheets[i].cssRules.length) ok = true; } catch (e) {} }
+  if (!ok) { document.body.innerHTML = '<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font:500 22px system-ui;color:#8e8e93">Jarvis is restarting…</div>'; setTimeout(function () { location.reload(); }, 8000); }
+});
+</script>
 <link rel="stylesheet" href="/web/style.css">
 <link rel="manifest" href="/web/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/web/icon-180.png">
@@ -39,7 +48,7 @@
 
 <div id="toasts"></div>
 <div id="dimmer"></div>
-<div id="offline">Reconnecting…</div>
+<div id="offline"><div class="off-box"><div class="off-spin"></div><div>Jarvis is reconnecting…</div><div class="off-sub">This screen comes back by itself in a moment.</div></div></div>
 
 <script src="/web/shell.js"></script>
 <script src="/web/keyboard.js"></script>

@@ -350,7 +350,7 @@ window.HD = (() => {
       if (DEMO_MUSIC) { state.spotify = state.spotify || {}; state.spotify.now = { title: "Some Jazz To Make Love On", artist: "Bellaire", playing: true, progress_ms: 61000, duration_ms: 344000, art_url: DEMO_ART, shuffle: false }; }
       // deployed web files changed since this page loaded: reload (kiosk and phones alike)
       if (state.web_version) { if (window.__webv == null) window.__webv = state.web_version; else if (state.web_version !== window.__webv) location.reload(); }
-      document.body.classList.toggle("offline", false);
+      document.body.classList.toggle("offline", false); pollFails = 0;
       if (current && apps[current].update) apps[current].update(state);
       if (!$("#idle").classList.contains("hidden")) renderIdle();
       // server-pushed events: state.events = [{t, name, data}] ring buffer from the "events" module
@@ -363,13 +363,15 @@ window.HD = (() => {
       applyDisplay();
       offlineSince = 0;
     } catch (e) {
-      document.body.classList.toggle("offline", true);
+      // one missed 2 s poll is normal (busy server); cover the screen only after ~6 s without an answer
+      pollFails = (typeof pollFails === "number" ? pollFails : 0) + 1;
+      if (pollFails >= 3) document.body.classList.toggle("offline", true);
       // a page that has lost the server for a minute reloads itself once the server answers a plain request again
       offlineSince = offlineSince || Date.now();
       if (Date.now() - offlineSince > 60000) { offlineSince = Date.now(); fetch("/web/icon.svg", { cache: "no-store" }).then(r => { if (r.ok) location.reload(); }).catch(() => {}); }
     }
   }
-  let offlineSince = 0;
+  let offlineSince = 0, pollFails = 0;
   async function loadConfig() { try { config = await (await fetch("/api/config")).json(); } catch (e) {} }
 
   // Background: {mode: "live"|"solid"|"gradient", color, gradient:[c1,c2]} from Settings. Themes read html[data-bg].

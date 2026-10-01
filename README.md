@@ -1,6 +1,6 @@
 # Jarvis HomeDeck
 
-> **Public mirror.** This is a snapshot of the private working repo (commit `7e095a4`). The camera / security-clip module and the intercom are not included; everything else is as it runs on the device.
+> **Public mirror.** This is a snapshot of the private working repo (commit `45d81eb`). The camera / security-clip module and the intercom are not included; everything else is as it runs on the device.
 
 
 A self-built voice assistant with a screen: a Raspberry Pi Compute Module 4 carrier PCB that bolts to the 7-inch

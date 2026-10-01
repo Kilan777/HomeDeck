@@ -311,6 +311,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.static("remote.html")
         if path.startswith("/web/"):
             return self.static(path[5:])
+        if path == "/api/health":                     # liveness for the systemd watchdog: no locks, no module calls
+            return self.send_json({"ok": True, "t": time.time()})
         if path == "/api/state":
             return self.send_json(full_state())
         if path == "/api/config":
@@ -387,14 +389,31 @@ def _fd_guard():
     import resource, collections
     soft = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
     warned = False
+    last_report = 0.0
     while True:
         time.sleep(60)
         try:
+            # threads and memory too: same idea, a slow leak of either ends the same way
+            rss_mb = 0
+            for line in open("/proc/self/status"):
+                if line.startswith("VmRSS:"):
+                    rss_mb = int(line.split()[1]) // 1024
+            threads = threading.active_count()
+            if time.time() - last_report > 3600:          # hourly health line: a slow leak shows up days early
+                log(f"health: {len(os.listdir('/proc/self/fd'))} files, {threads} threads, {rss_mb} MB")
+                last_report = time.time()
+            if rss_mb > 1500 or threads > 400:
+                log(f"{rss_mb} MB / {threads} threads in use, restarting the service")
+                os._exit(1)
             fds = os.listdir("/proc/self/fd")
             n = len(fds)
             if n > 0.6 * soft and not warned:
                 log(f"{n} of {soft} file handles in use; watching for a leak")
                 warned = True
+            if n > 0.6 * soft:
+                import gc
+                gc.collect()                                # libraries that leave handles in reference cycles
+                n = len(os.listdir("/proc/self/fd"))
             if n > 0.85 * soft:
                 kinds = collections.Counter()
                 for fd in fds:
@@ -408,10 +427,50 @@ def _fd_guard():
             log(f"fd guard: {e}")
 
 
+def _systemd_watchdog():
+    """Tell systemd we are alive, but only when the web server really answers. If a request to /api/health fails
+    (handles exhausted, server thread wedged, deadlock), the pings stop and systemd restarts the service after
+    WatchdogSec. Does nothing when not started by systemd with a watchdog."""
+    import socket, urllib.request
+    addr = os.environ.get("NOTIFY_SOCKET")
+    usec = int(os.environ.get("WATCHDOG_USEC", "0") or 0)
+    if not addr or not usec:
+        return
+    if addr.startswith("@"):
+        addr = "\0" + addr[1:]
+    interval = max(5.0, usec / 1e6 / 3)
+    sk = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    def notify(msg):
+        try:
+            sk.sendto(msg.encode(), addr)
+        except OSError as e:
+            log(f"watchdog notify failed: {e}")
+    for _ in range(60):                                   # wait for the HTTP server to start listening
+        try:
+            urllib.request.urlopen(f"http://127.0.0.1:{PORT}/api/health", timeout=2).close(); break
+        except Exception:
+            time.sleep(1)
+    notify("READY=1")
+    failing = 0
+    while True:
+        try:
+            with urllib.request.urlopen(f"http://127.0.0.1:{PORT}/api/health", timeout=10) as r:
+                ok = r.status == 200
+        except Exception as e:
+            ok = False
+            failing += 1
+            log(f"watchdog: self-check failed ({e}); {'restart pending' if failing > 1 else 'retrying'}")
+        if ok:
+            failing = 0
+            notify("WATCHDOG=1")
+        time.sleep(interval)
+
+
 def main():
     os.makedirs(DATA_DIR, exist_ok=True)
     load_modules()
     threading.Thread(target=_fd_guard, name="fd-guard", daemon=True).start()
+    threading.Thread(target=_systemd_watchdog, name="watchdog", daemon=True).start()
     log(f"HomeDeck serving on port {PORT}")
     srv = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     srv.daemon_threads = True

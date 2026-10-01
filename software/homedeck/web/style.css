@@ -369,8 +369,13 @@ button.switch.on::after { transform: translateX(20px); }
 /* ---------- display states */
 #dimmer { position: fixed; inset: 0; background: #000; opacity: var(--dim); pointer-events: none; z-index: 40; transition: opacity 1s; }
 body.screen-off #dimmer { opacity: 1; pointer-events: auto; }
-#offline { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(44,44,46,.96); color: var(--fg2); padding: 6px 14px; border-radius: 999px; font-size: 13px; display: none; z-index: 70; }
-body.offline #offline { display: block; }
+/* lost the server: a calm full-screen cover (shown after a few failed polls) instead of a stale or half-broken page */
+#offline { position: fixed; inset: 0; z-index: 70; display: none; align-items: center; justify-content: center; background: rgba(10,11,15,.94); backdrop-filter: blur(14px); color: var(--fg); }
+body.offline #offline { display: flex; }
+#offline .off-box { display: flex; flex-direction: column; align-items: center; gap: 12px; font-size: 24px; font-weight: 600; }
+#offline .off-sub { font-size: 15px; font-weight: 400; color: var(--fg2); }
+#offline .off-spin { width: 34px; height: 34px; border-radius: 50%; border: 3px solid rgba(255,255,255,.15); border-top-color: var(--accent); animation: offspin 1s linear infinite; }
+@keyframes offspin { to { transform: rotate(360deg); } }
 
 /* ---------- responsive: phones (narrow), tablets/desktop (wide) */
 @media (max-width: 420px) {

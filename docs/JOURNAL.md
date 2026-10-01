@@ -18,6 +18,24 @@ a manual mode change retries at once. Safety net: server.py `_fd_guard` logs at 
 at 85 % with the top handle types, so systemd restarts a clean process instead of the screen hanging. Handle count
 now flat (21 over 150 s) with the camera still unplugged.
 
+**Hardening so a wedged service cannot leave the screen dead again.** Four layers, each tested on the device:
+1. Leak audit. Steady state over 9 min: files, threads and child processes flat. Failure paths forced
+   repeatedly: mic reopen x6, Spotify player restart x4, 5 voice answers: no growth. Camera off/on leaked ~1
+   handle per cycle (epoll + dma_heap): picamera2 leaves its objects in reference cycles, freed only by a full
+   GC. `_stop_camera` now stops each part separately with errors logged, then `gc.collect()`; a failed start
+   closes and collects too. Standalone repro: 4 cycles 7 -> 19 without GC, 4 -> 4 with. In the service: 145 -> 145.
+2. In-process guard (`_fd_guard`): hourly "health: files, threads, MB" log line; at 60 % of the handle limit a GC
+   then a warning; at 85 %, or above 1500 MB / 400 threads, log the top handle types and exit for a clean restart.
+3. systemd watchdog: `/api/health` (no locks) is fetched every minute by `_systemd_watchdog`, which pings
+   WATCHDOG=1 only on success; unit has WatchdogSec=180, NotifyAccess=main, TimeoutStopSec=20, and
+   StartLimitBurst=6 in 15 min -> reboot (crash loop, or a thread stuck in the kernel). Tested with SIGSTOP:
+   "Watchdog timeout", restarted 2 min 10 s later, healthy. The Pi's hardware watchdog (RuntimeWatchdogSec=1min,
+   on by default) already covers a frozen kernel.
+4. Screen: `#offline` is now a full-screen dark "Jarvis is reconnecting" cover after ~6 s of failed polls
+   (it was a small pill on top of a stale page), and index.html has inline dark colours plus a check that
+   style.css really loaded; if not, it shows "Jarvis is restarting" and reloads every 8 s (this morning's white
+   page). Tested: service stopped -> cover; started -> normal page by itself.
+
 **Camera plugged in after boot is not hot-pluggable.** The kernel probes the imx708 only at boot ("failed to read
 chip id 708, error -5" if the ribbon is out). Writing the I2C address to `/sys/bus/i2c/drivers/imx708/bind` worked
 once for a sensor that had never probed, but an unbind followed by a bind oopsed the unicam media driver

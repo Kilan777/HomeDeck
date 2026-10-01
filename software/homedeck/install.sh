@@ -31,6 +31,10 @@ sudo tee /etc/systemd/system/homedeck.service >/dev/null <<EOF
 Description=HomeDeck assistant (server, sensors, camera, voice, alarms)
 After=network-online.target sound.target
 Wants=network-online.target
+# if it cannot stay up (crash loop, or a thread stuck in the kernel that survives a restart), reboot the Pi
+StartLimitIntervalSec=900
+StartLimitBurst=6
+StartLimitAction=reboot
 
 [Service]
 ExecStart=/bin/sh -c "exec \$([ -x $APP/venv/bin/python ] && echo $APP/venv/bin/python || echo /usr/bin/python3) $APP/server.py"
@@ -38,6 +42,10 @@ WorkingDirectory=$APP
 Environment=HOMEDECK_DATA=$DATA
 Restart=always
 RestartSec=3
+# server.py pings the watchdog only while /api/health answers: a wedged server (handle leak, deadlock) is restarted
+WatchdogSec=180
+NotifyAccess=main
+TimeoutStopSec=20
 User=root
 
 [Install]
