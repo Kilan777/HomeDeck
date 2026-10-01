@@ -18,6 +18,12 @@ a manual mode change retries at once. Safety net: server.py `_fd_guard` logs at 
 at 85 % with the top handle types, so systemd restarts a clean process instead of the screen hanging. Handle count
 now flat (21 over 150 s) with the camera still unplugged.
 
+**Camera plugged in after boot is not hot-pluggable.** The kernel probes the imx708 only at boot ("failed to read
+chip id 708, error -5" if the ribbon is out). Writing the I2C address to `/sys/bus/i2c/drivers/imx708/bind` worked
+once for a sensor that had never probed, but an unbind followed by a bind oopsed the unicam media driver
+(`kernel BUG at mc-entity.c:146`) and left the camera thread stuck in the kernel; only a reboot cleared it. So no
+automatic re-probe: connect the camera with the power off and reboot. The camera page's error says so.
+
 ## 2026-09-29: camera "not focusing", Spotify "disconnected", kiosk stuck after reboot
 
 **Camera autofocus was mechanically blocked by the enclosure.** Symptoms: every frame soft, `af_cycle` fails or
