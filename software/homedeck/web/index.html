@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f1115">
+<title>HomeDeck</title>
+<!-- critical fallback: dark even if style.css never arrives (server struggling), and reload until it does -->
+<style>html,body{background:#0f1115;color:#f2f2f7;margin:0}</style>
+<script>
+window.addEventListener("load", function () {
+  var ok = false;
+  for (var i = 0; i < document.styleSheets.length; i++) { try { if ((document.styleSheets[i].href || "").indexOf("/web/style.css") >= 0 && document.styleSheets[i].cssRules.length) ok = true; } catch (e) {} }
+  if (!ok) { document.body.innerHTML = '<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font:500 22px system-ui;color:#8e8e93">Jarvis is restarting…</div>'; setTimeout(function () { location.reload(); }, 8000); }
+});
+</script>
+<link rel="stylesheet" href="/web/style.css">
+<link rel="manifest" href="/web/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/web/icon-180.png">
+<link rel="icon" href="/web/icon.svg" type="image/svg+xml">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HomeDeck">
+</head>
+<body>
+<!-- Idle / home screen: clock, date, widgets from apps. Tap anywhere -> app grid. -->
+<section id="idle">
+  <div class="clockwrap">
+    <div id="clock">--:--</div>
+    <div id="date"></div>
+  </div>
+  <div id="idlewidgets"></div>
+  <div id="idlecontrols"></div>
+</section>
+
+<!-- App grid -->
+<section id="apps" class="hidden">
+  <div class="sheet" id="appsheet">
+    <div class="grab" aria-hidden="true"></div>
+    <header class="apphead sheethead"><h2>Apps</h2><button class="back xclose" id="homebtn" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+    <div id="appgrid"></div>
+  </div>
+</section>
+
+<!-- Open app -->
+<section id="appview" class="hidden"></section>
+
+<div id="toasts"></div>
+<div id="dimmer"></div>
+<div id="offline"><div class="off-box"><div class="off-spin"></div><div>Jarvis is reconnecting…</div><div class="off-sub">This screen comes back by itself in a moment.</div></div></div>
+
+<script src="/web/shell.js"></script>
+<script src="/web/keyboard.js"></script>
+<script src="/web/apps/sensors.js"></script>
+<script src="/web/apps/weather.js"></script>
+<script src="/web/apps/bikes.js"></script>
+<script src="/web/apps/calendar.js"></script>
+<script src="/web/apps/timers.js"></script>
+<script src="/web/apps/leds.js"></script>
+<script src="/web/apps/fan.js"></script>
+<script src="/web/apps/sleep.js"></script>
+<script src="/web/apps/lists.js"></script>
+<script src="/web/apps/reminders.js"></script>
+<script src="/web/apps/news.js"></script>
+<script src="/web/apps/alarms.js"></script>
+<script src="/web/apps/spotify.js"></script>
+<script src="/web/apps/youtube.js"></script>
+<script src="/web/apps/games.js"></script>
+<script src="/web/apps/flights.js"></script>
+<script src="/web/apps/transit.js"></script>
+<script src="/web/apps/guest.js"></script>
+<script src="/web/apps/countdowns.js"></script>
+<script src="/web/apps/voice.js"></script>
+<script src="/web/apps/presence.js"></script>
+<script src="/web/apps/settings.js"></script>
+<script>document.getElementById("homebtn").onclick = () => HD.showIdle();</script>
+</body>
+</html>

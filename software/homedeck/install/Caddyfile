@@ -1,0 +1,20 @@
+# HomeDeck public front door. Caddy terminates HTTPS (automatic Let's Encrypt) and proxies to the app on 8080.
+# Only the hostname below is served; anything else on 443 gets Caddy's default refusal.
+jarvis.example.com {
+	encode gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	# flush_interval -1 keeps the camera's MJPEG stream and long polls flowing instead of buffering
+	reverse_proxy 127.0.0.1:8080 {
+		flush_interval -1
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+}

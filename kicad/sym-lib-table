@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "HomeDeck")(type "KiCad")(uri "${KIPRJMOD}/HomeDeck.kicad_sym")(options "")(descr "HomeDeck project symbols"))
+)

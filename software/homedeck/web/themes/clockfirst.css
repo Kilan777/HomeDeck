@@ -1,0 +1,49 @@
+/* Home style "Clock-first": the clock owns the top third; one calm row of three glanceable tiles;
+   the rest of the tiles live one horizontal swipe away. Scoped to html[data-home="clockfirst"]. */
+html[data-home="clockfirst"] #idle { justify-content: flex-start; padding: 64px 18px 96px; gap: 0; }
+html[data-home="clockfirst"] .clockwrap { margin-bottom: 0; }
+html[data-home="clockfirst"] #clock {
+  font-size: 160px; font-weight: 640; letter-spacing: -.065em; line-height: .88; white-space: nowrap;
+  font-variant-numeric: tabular-nums; font-variation-settings: "opsz" 32; color: var(--fg);
+}
+html[data-home="clockfirst"] #clock .ampm { display: none; }          /* like the iOS lock screen: digits only */
+html[data-home="clockfirst"] #date { font-size: 21px; font-weight: 500; letter-spacing: -.01em; color: var(--fg2); margin-top: 14px; }
+html[data-home="clockfirst"] #idle.music #clock { font-size: 34px; font-weight: 500; letter-spacing: -.02em; line-height: 1.1; }
+html[data-home="clockfirst"] #idle.music .cf { display: none; }
+
+/* pager */
+html[data-home="clockfirst"] #idlewidgets { display: block; width: 100%; max-width: none; flex: 0 0 auto; margin-top: 176px; }
+html[data-home="clockfirst"] .cf { width: 100%; overflow: hidden; touch-action: pan-y; }
+html[data-home="clockfirst"] .cf-track { display: flex; width: 200%; transition: transform .25s cubic-bezier(.2,.8,.2,1); will-change: transform; }
+html[data-home="clockfirst"] .cf.dragging .cf-track { transition: none; }
+html[data-home="clockfirst"] .cf-page { width: 50%; flex: 0 0 50%; padding: 0 1px; box-sizing: border-box; }
+html[data-home="clockfirst"] .cf-p1 { display: flex; gap: 12px; align-items: flex-start; }
+html[data-home="clockfirst"] .cf-p2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+html[data-home="clockfirst"] .cf-dots { display: flex; justify-content: center; gap: 8px; margin-top: 22px; }
+html[data-home="clockfirst"] .cf-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--fg); opacity: .35; transition: opacity .2s; }
+html[data-home="clockfirst"] .cf-dots i.on { opacity: .9; }
+
+/* page 1: three compact glance tiles */
+html[data-home="clockfirst"] .cf-tile {
+  flex: 1 1 0; min-width: 0; height: 122px; padding: 14px 14px 13px; box-sizing: border-box; border-radius: 16px;
+  background: rgba(255,255,255,.05); box-shadow: inset 0 0 0 1px var(--hair, rgba(255,255,255,.08));
+  display: flex; flex-direction: column; gap: 4px; cursor: pointer;
+}
+html[data-home="clockfirst"] .cf-tile:active { background: rgba(255,255,255,.09); }
+html[data-home="clockfirst"] .cf-lbl { font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--muted, var(--fg2)); }
+html[data-home="clockfirst"] .cf-val { font-size: 30px; font-weight: 600; letter-spacing: -.03em; line-height: 1.05; white-space: nowrap; display: flex; align-items: baseline; gap: 6px; margin-top: 6px; }
+html[data-home="clockfirst"] .cf-val svg { width: 24px; height: 24px; align-self: center; flex: none; }
+html[data-home="clockfirst"] .cf-val .cf-unit { font-size: 14px; font-weight: 500; color: var(--fg2); letter-spacing: 0; }
+html[data-home="clockfirst"] .cf-sub { font-size: 14px; color: var(--fg2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; margin-top: auto; }
+html[data-home="clockfirst"] .cf-sub .dot { width: 8px; height: 8px; flex: none; }
+
+/* page 2 reuses the board tile styles; keep them compact and uniform */
+html[data-home="clockfirst"] .cf-p2 .iw { min-height: 112px; padding: 14px 14px 12px; border-radius: 16px; display: flex; flex-direction: column; gap: 4px; }
+html[data-home="clockfirst"] .cf-p2 .iw-big { font-size: 30px; }
+html[data-home="clockfirst"] .cf-p2 .iw-hours, html[data-home="clockfirst"] .cf-p2 .iw-meter, html[data-home="clockfirst"] .cf-p2 .iw-spark { display: none; }
+html[data-home="clockfirst"] .cf-empty { grid-column: 1 / -1; text-align: center; color: var(--muted, var(--fg2)); font-size: 14px; padding: 28px 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-home="clockfirst"] .cf-track { transition: none; }
+}
+html[data-home="clockfirst"] .cf-p2 .iw[hidden], html[data-home="clockfirst"] .cf-tile[hidden], html[data-home="clockfirst"] .cf-empty[hidden] { display: none !important; }
