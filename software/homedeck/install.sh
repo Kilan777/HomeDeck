@@ -55,6 +55,28 @@ printf "[connection]\nwifi.powersave = 2\n" | sudo tee /etc/NetworkManager/conf.
 for c in $(nmcli -t -f NAME,TYPE con show | awk -F: '$2=="802-11-wireless"{print $1}'); do sudo nmcli con modify "$c" 802-11-wireless.powersave 2; done
 command -v iw >/dev/null && sudo iw dev wlan0 set power_save off 2>/dev/null || true
 
+echo "== write video to storage within seconds"
+# the camera writes continuously; the kernel's default 30 s write-back delay means a power cut loses up to ~30 s
+printf "vm.dirty_expire_centisecs=500\nvm.dirty_writeback_centisecs=200\n" | sudo tee /etc/sysctl.d/91-homedeck-writeback.conf >/dev/null
+echo 500 | sudo tee /proc/sys/vm/dirty_expire_centisecs >/dev/null; echo 200 | sudo tee /proc/sys/vm/dirty_writeback_centisecs >/dev/null
+
+echo "== network watchdog"
+sudo install -m 755 "$HERE/install/net_watchdog.sh" /usr/local/bin/homedeck-netwatch
+sudo tee /etc/systemd/system/homedeck-netwatch.service >/dev/null <<'EOF'
+[Unit]
+Description=HomeDeck network watchdog (reconnect Wi-Fi when the router stops answering)
+After=NetworkManager.service
+
+[Service]
+ExecStart=/usr/local/bin/homedeck-netwatch
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl daemon-reload; sudo systemctl enable --now homedeck-netwatch.service >/dev/null 2>&1 || true
+
 echo "== close unused ports"
 # rpcbind (port 111, "sunrpc") is only for NFS shares, which the HomeDeck does not use
 sudo systemctl disable --now rpcbind.service rpcbind.socket >/dev/null 2>&1 || true

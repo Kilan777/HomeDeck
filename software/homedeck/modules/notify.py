@@ -112,10 +112,7 @@ def problem(detail):
     if _t.time() - _problem["last"] < 3600:
         return
     _problem["last"] = _t.time()
-    try:
-        send("Jarvis", PROBLEM_TEXT)
-    except Exception as e:
-        ctx.log(f"problem alert failed: {e}")
+    _send_or_retry(PROBLEM_TEXT)
 
 
 def recovered(detail):
@@ -123,7 +120,20 @@ def recovered(detail):
     if not _problem["open"]:
         return
     _problem["open"] = False
-    try:
-        send("Jarvis", RECOVERED_TEXT)
-    except Exception as e:
-        ctx.log(f"recovered alert failed: {e}")
+    _send_or_retry(RECOVERED_TEXT)
+
+
+def _send_or_retry(text):
+    """Send now; if that fails (often the very problem is a dead network), keep retrying every minute for 24 h."""
+    import threading as _th, time as _t
+    def run():
+        t0 = _t.time()
+        while _t.time() - t0 < 86400:
+            try:
+                if send("Jarvis", text):
+                    return
+            except Exception as e:
+                ctx.log(f"alert send failed: {e}")
+            _t.sleep(60)
+        ctx.log("alert dropped after 24 h of failed sends")
+    _th.Thread(target=run, name="alert-retry", daemon=True).start()
