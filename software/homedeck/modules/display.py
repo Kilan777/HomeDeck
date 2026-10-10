@@ -97,12 +97,18 @@ def _target_pct(lux):
     return cfg.get("min_pct", 5) + f * (cfg.get("max_pct", 100) - cfg.get("min_pct", 5))
 
 
+_manual_off = {"on": False}
+
+
 def _wake(reason):
+    if _manual_off["on"] and reason == "presence":
+        return                                   # the owner turned the screen off: movement must not undo that
     global _last_touch
     _last_touch = time.time()
     with _lock:
         was_off = _s["screen_off"]
         _s["screen_off"] = False
+        _manual_off["on"] = False
         _s["sleeping"] = False
     if was_off:
         ctx.log(f"screen woke ({reason})")
@@ -157,6 +163,7 @@ def _power_button_thread():
                         with _lock:
                             off = not _s["screen_off"]
                             _s["screen_off"] = off
+                            _manual_off["on"] = off
                         _bl_write(_s["brightness_pct"], off)
                         if not off: _wake("power button")
                         ctx.log(f"power button: short press -> screen {'off' if off else 'on'}")
@@ -216,6 +223,7 @@ def api(action, params):
     if action == "screen_off":
         with _lock:
             _s["screen_off"] = not _s["screen_off"] if params.get("toggle", True) else bool(params.get("off", True))
+            _manual_off["on"] = _s["screen_off"]
         _bl_write(_s["brightness_pct"], _s["screen_off"])
         return {"ok": True, "screen_off": _s["screen_off"]}
     if action == "set_brightness":
