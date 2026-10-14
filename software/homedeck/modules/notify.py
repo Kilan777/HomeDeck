@@ -102,15 +102,17 @@ def start(c):
 # so a problem that repeats does not flood the phone.
 PROBLEM_TEXT = "Jarvis is facing technical difficulties."
 RECOVERED_TEXT = "Jarvis is working normally again."
-_problem = {"last": 0.0, "open": False}
+_problem = {"last": 0.0, "open": False, "kinds": {}}
 
 
 def problem(detail):
     import time as _t
     ctx.log(f"problem: {detail}")
     _problem["open"] = True
-    if _t.time() - _problem["last"] < 3600:
+    kind = detail.split(":")[0] + ":" + " ".join(detail.split(":", 1)[-1].split()[:4])   # e.g. "camera: Google Drive sign-in rejected,"
+    if _t.time() - _problem["kinds"].get(kind, 0) < 6 * 3600 or _t.time() - _problem["last"] < 600:
         return
+    _problem["kinds"][kind] = _t.time()
     _problem["last"] = _t.time()
     _send_or_retry(PROBLEM_TEXT)
 

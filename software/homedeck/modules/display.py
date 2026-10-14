@@ -302,6 +302,9 @@ def start(c):
             cfg = ctx.config
             target = _target_pct(_s["lux"])
             sleeping = cfg.get("sleep_after_s", 300) and idle > cfg.get("sleep_after_s", 300)
+            manual = _s["override_pct"] is not None and time.time() < _s["override_until"]
+            if manual:
+                sleeping = False        # a level the owner chose (phone or screen) is kept, not idle-dimmed after 5 min
             if sleeping:
                 target = min(target, max(1, cfg.get("min_pct", 5)))
             off_after = cfg.get("off_after_s", 0)

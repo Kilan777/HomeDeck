@@ -129,12 +129,15 @@ window.HD = (() => {
     const t = document.createElement("div"); t.className = `toast ${level}`; t.textContent = text;
     $("#toasts").appendChild(t); setTimeout(() => t.remove(), ms);
   }
-  function popup({ title, body, actions = [{ label: "OK" }], level = "info" }) {
+  // cards close by themselves after 10 minutes (owner's rule); alarms stop ringing after 10 minutes anyway
+  function popup({ title, body, actions = [{ label: "OK" }], level = "info", ttl = 600 }) {
     const wrap = document.createElement("div"); wrap.className = "popup-wrap";
     wrap.innerHTML = `<div class="popup ${level}"><h3></h3><div class="pbody"></div><div class="pactions${actions.length === 2 ? "" : " stack"}"></div></div>`;
     $("h3", wrap).textContent = title; $(".pbody", wrap).innerHTML = body;
     for (const a of actions) { const b = document.createElement("button"); b.textContent = a.label; b.onclick = () => { wrap.remove(); a.onclick && a.onclick(); }; $(".pactions", wrap).appendChild(b); }
-    document.body.appendChild(wrap); return wrap;
+    document.body.appendChild(wrap);
+    if (ttl) setTimeout(() => wrap.remove(), ttl * 1000);
+    return wrap;
   }
 
   // iOS-style app colours: each app owns one calm solid; used for its switcher squircle, page icon and primary buttons
