@@ -4,7 +4,7 @@ Backlight: /sys/class/backlight/panel_backlight@1 (brightness 0-31, bl_power 0=o
 (then we just track the value; the shell dims the page via CSS from brightness_pct).
 Light source: BH1750 on I2C6 at 0x23 if fitted, else the camera module's lux estimate.
 """
-import threading, os, subprocess, time
+import re, threading, os, subprocess, time
 
 NAME = "display"
 DEFAULTS = {"power_button": {"long_press_s": 3},
@@ -64,8 +64,50 @@ def _bl_write(pct, off):
             v = max(1, min(31, round(31 * pct / 100)))
             with open(os.path.join(BL, "brightness"), "w") as f:
                 f.write(str(v))
+            _bl_verify(v)
     except Exception as e:
         ctx.log(f"backlight write failed: {e}")
+
+
+_blv = {"bad_since": None, "alerted": False, "last": None}
+
+
+def _bl_verify(level):
+    """The Touch Display 2 backlight is a PWM inside the panel's controller (I2C 0x45). pwm-backlight ignores a failed
+    apply, so when that controller hangs (seen at boot and, 2026-10-13, while running: I2C NACK while the camera on
+    the same bus answered) the level silently never reaches the panel. The PWM core only records a level it applied,
+    so compare its requested duty with what we asked for; if it does not follow, say so on screen and on the phone."""
+    if level == _blv["last"]:
+        return
+    try:
+        txt = open("/sys/kernel/debug/pwm").read()
+    except OSError:
+        return                                   # no debugfs: cannot tell
+    m = re.search(r"\(panel_backlight\s*\):.*?requested configuration:\s*(\w+),\s*(\d+)/(\d+) ns", txt, re.S)
+    if not m:
+        return
+    duty, period = int(m.group(2)), int(m.group(3))
+    ok = period > 0 and abs(duty - level * period / 31) <= period / 31 / 2
+    _blv["last"] = level
+    if ok:
+        if _blv["bad_since"]:
+            ctx.log("backlight control responding again")
+        _blv.update({"bad_since": None, "alerted": False})
+        with _lock:
+            if (_s.get("backlight_hint") or "").startswith("Brightness control stopped"):
+                _s["backlight_hint"] = None
+        return
+    _blv["bad_since"] = _blv["bad_since"] or time.time()
+    with _lock:
+        _s["backlight_hint"] = ("Brightness control stopped responding (the screen's controller is stuck). "
+                                "Unplug the HomeDeck for 10 seconds to reset it.")
+    if not _blv["alerted"]:
+        _blv["alerted"] = True
+        ctx.log(f"backlight: panel controller is not taking new levels (asked {level}/31, still at "
+                f"{round(duty * 31 / period) if period else '?'}/31)")
+        n = ctx.module("notify")
+        if n and hasattr(n, "problem"):
+            n.problem("display: brightness control stopped responding (panel controller I2C NACK); unplug power for 10 s")
 
 
 # ------------------------------------------------------------------ helpers

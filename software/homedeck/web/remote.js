@@ -133,7 +133,8 @@
     const mic = !(s.voice && s.voice.mic_enabled === false); $("#h-mic").classList.toggle("on", mic); setText($("#h-mic-sub"), mic ? "Listening for “Hey Jarvis”" : "Off, nothing is captured");
     const a = s.audio || {}; if (document.activeElement !== $("#h-vol")) { $("#h-vol").value = a.volume_pct ?? 50; setText($("#h-vol-v"), (a.volume_pct ?? "–") + "%"); } setText($("#h-mute"), a.muted ? "Unmute" : "Mute");
     const d = s.display || {}; setText($("#h-screen"), d.screen_off ? "Turn on" : "Turn off"); setText($("#h-scr-sub"), d.screen_off ? "Off" : `On · ${d.brightness_pct ?? "?"}% brightness`);
-    if (document.activeElement !== $("#h-br") && d.brightness_pct != null) { $("#h-br").value = d.brightness_pct; setText($("#h-br-sub"), `${d.brightness_pct}%${d.override_pct != null ? " · manual" : " · auto"}`); }
+    if (d.backlight_hint) setText($("#h-br-sub"), d.backlight_hint);
+    else if (document.activeElement !== $("#h-br") && d.brightness_pct != null) { $("#h-br").value = d.brightness_pct; setText($("#h-br-sub"), `${d.brightness_pct}%${d.override_pct != null ? " · manual" : " · auto"}`); }
     $("#h-guest").classList.toggle("on", !!g.guest_mode);
     const ms = (s.sensors || {}).metrics || [];
     setHtml($("#h-tiles"), ms.filter(m => ["co2", "temp", "hum", "voc"].includes(m.key)).map(m => { let val = m.value, unit = m.unit; if (m.key === "temp") { val = null; } return `<div class="tile"><div class="lbl">${m.label}</div><div class="val">${m.key === "temp" ? tempOut(m.value) : fmt(val, m.key === "co2" ? 0 : 1)}<small>${m.key === "temp" ? "" : unit}</small></div><div class="sub"><span class="dot ${m.status.level}"></span>${m.status.text}</div></div>`; }).join(""));
